@@ -39,7 +39,7 @@ static SVCCTL_EvtAckStatus_t serial_svc_event_handler(void *event) {
                 ret = SVCCTL_EvtAckFlowEnable;
                 FURI_LOG_D(TAG, "RX descriptor event");
             } else if(attribute_modified->Attr_Handle == serial_svc->rx_char_handle + 1) {
-                FURI_LOG_D(TAG, "Received %d bytes", attribute_modified->Attr_Data_Length);
+                FURI_LOG_I(TAG, "Received %d bytes", attribute_modified->Attr_Data_Length);
                 if(serial_svc->on_received_cb) {
                     furi_check(osMutexAcquire(serial_svc->buff_size_mtx, osWaitForever) == osOK);
                     if(attribute_modified->Attr_Data_Length > serial_svc->bytes_ready_to_receive) {
@@ -172,17 +172,31 @@ void serial_svc_stop() {
     }
 }
 
-bool serial_svc_update_tx(uint8_t* data, uint8_t data_len) {
+bool serial_svc_update_tx(uint8_t* data, uint16_t data_len) {
     if(data_len > SERIAL_SVC_DATA_LEN_MAX) {
         return false;
     }
-    tBleStatus result = aci_gatt_update_char_value(serial_svc->svc_handle,
-                                        serial_svc->tx_char_handle,
+
+    for (uint16_t remained = data_len; remained > 0;) {
+        uint8_t value_len = MIN(SERIAL_SVC_CHAR_VALUE_LEN_MAX, remained);
+        uint8_t value_offset = data_len - remained;
+        remained -= value_len;
+
+        tBleStatus result  = aci_gatt_update_char_value_ext(
                                         0,
+                                        serial_svc->svc_handle,
+                                        serial_svc->tx_char_handle,
+                                        remained ? 0x00 : 0x02,
                                         data_len,
-                                        data);
-    if(result) {
-        FURI_LOG_E(TAG, "Failed updating TX characteristic: %d", result);
+                                        value_offset,
+                                        value_len,
+                                        data + value_offset);
+
+        if(result) {
+            FURI_LOG_E(TAG, "Failed updating TX characteristic: %d", result);
+            return false;
+        }
     }
-    return result != BLE_STATUS_SUCCESS;
+
+    return true;
 }
