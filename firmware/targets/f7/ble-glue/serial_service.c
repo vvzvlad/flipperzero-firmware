@@ -179,7 +179,7 @@ bool serial_svc_update_tx(uint8_t* data, uint16_t data_len) {
 
     for (uint16_t remained = data_len; remained > 0;) {
         uint8_t value_len = MIN(SERIAL_SVC_CHAR_VALUE_LEN_MAX, remained);
-        uint8_t value_offset = data_len - remained;
+        uint16_t value_offset = data_len - remained;
         remained -= value_len;
 
         tBleStatus result  = aci_gatt_update_char_value_ext(
