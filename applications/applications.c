@@ -40,6 +40,7 @@ extern int32_t usb_mouse_app(void* p);
 extern int32_t usb_test_app(void* p);
 extern int32_t vibro_test_app(void* p);
 extern int32_t ble_keyboard_app(void* p);
+extern int32_t ble_master_app(void* p);
 
 // Plugins
 extern int32_t music_player_app(void* p);
@@ -221,6 +222,10 @@ const size_t FLIPPER_PLUGINS_COUNT = sizeof(FLIPPER_PLUGINS) / sizeof(FlipperApp
 const FlipperApplication FLIPPER_DEBUG_APPS[] = {
 #ifdef APP_BLE_KEYBOARD
     {.app = ble_keyboard_app, .name = "BLE keyboard demo", .stack_size = 1024, .icon = NULL},
+#endif
+
+#ifdef APP_BLE_MASTER
+    {.app = ble_master_app, .name = "BLE master demo", .stack_size = 1024, .icon = NULL},
 #endif
 
 #ifdef APP_BLINK
