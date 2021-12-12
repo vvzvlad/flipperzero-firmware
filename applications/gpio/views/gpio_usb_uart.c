@@ -96,6 +96,21 @@ static bool gpio_usb_uart_input_callback(InputEvent* event, void* context) {
             furi_assert(usb_uart->callback);
             usb_uart->callback(GpioUsbUartEventConfig, usb_uart->context);
         }
+        if(event->key == InputKeyRight) {
+            consumed = true;
+            furi_assert(usb_uart->callback);
+            usb_uart->callback(GpioUsbUartEventCntReset, usb_uart->context);
+        }
+        if(event->key == InputKeyUp) {
+            consumed = true;
+            furi_assert(usb_uart->callback);
+            usb_uart->callback(GpioUsbUartEventEnOn, usb_uart->context);
+        }
+        if(event->key == InputKeyDown) {
+            consumed = true;
+            furi_assert(usb_uart->callback);
+            usb_uart->callback(GpioUsbUartEventEnOff, usb_uart->context);
+        }
     }
 
     return consumed;

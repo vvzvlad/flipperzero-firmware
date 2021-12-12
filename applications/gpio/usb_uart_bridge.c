@@ -27,12 +27,12 @@ typedef enum {
 
     WorkerEvtLineCfgSet = (1 << 6),
     WorkerEvtCtrlLineSet = (1 << 7),
-
+    WorkerEvtCntReset = (1 << 8),
 } WorkerEvtFlags;
 
 #define WORKER_ALL_RX_EVENTS                                                      \
     (WorkerEvtStop | WorkerEvtRxDone | WorkerEvtCfgChange | WorkerEvtLineCfgSet | \
-     WorkerEvtCtrlLineSet)
+     WorkerEvtCtrlLineSet | WorkerEvtCntReset)
 #define WORKER_ALL_TX_EVENTS (WorkerEvtTxStop | WorkerEvtCdcRx)
 
 struct UsbUartBridge {
@@ -133,13 +133,37 @@ static void usb_uart_update_ctrl_lines(UsbUartBridge* usb_uart) {
         furi_assert((usb_uart->cfg.flow_pins - 1) < (sizeof(flow_pins) / sizeof(flow_pins[0])));
         uint8_t state = furi_hal_cdc_get_ctrl_line_state(usb_uart->cfg.vcp_ch);
 
-        hal_gpio_write(flow_pins[usb_uart->cfg.flow_pins - 1][0], !(state & USB_CDC_BIT_RTS));
-        hal_gpio_write(flow_pins[usb_uart->cfg.flow_pins - 1][1], !(state & USB_CDC_BIT_DTR));
+        uint8_t esp_en_state = 0;
+        uint8_t esp_io0_state = 0;
+
+        if (!(state & USB_CDC_BIT_RTS) && !(state & USB_CDC_BIT_DTR)) {
+            esp_en_state = 1;
+            esp_io0_state = 1;
+        }
+        if((state & USB_CDC_BIT_RTS) && (state & USB_CDC_BIT_DTR)) {
+            esp_en_state = 1;
+            esp_io0_state = 1;
+        }
+        if((state & USB_CDC_BIT_RTS) && !(state & USB_CDC_BIT_DTR)) {
+            esp_en_state = 0;
+            esp_io0_state = 1;
+        }
+        if(!(state & USB_CDC_BIT_RTS) && (state & USB_CDC_BIT_DTR)) {
+            esp_en_state = 1;
+            esp_io0_state = 0;
+        }
+
+        hal_gpio_write(flow_pins[usb_uart->cfg.flow_pins - 1][0], esp_en_state); //PA7
+        hal_gpio_write(flow_pins[usb_uart->cfg.flow_pins - 1][1], esp_io0_state); //PA6
     }
 }
 
 static int32_t usb_uart_worker(void* context) {
     UsbUartBridge* usb_uart = (UsbUartBridge*)context;
+
+    usb_uart->cfg_new.vcp_ch = 1;
+    usb_uart->cfg_new.uart_ch = 1;
+    usb_uart->cfg_new.flow_pins = 1;
 
     memcpy(&usb_uart->cfg, &usb_uart->cfg_new, sizeof(UsbUartConfig));
 
@@ -242,6 +266,10 @@ static int32_t usb_uart_worker(void* context) {
         }
         if(events & WorkerEvtCtrlLineSet) {
             usb_uart_update_ctrl_lines(usb_uart);
+        }
+        if(events & WorkerEvtCntReset) {
+            usb_uart->st.rx_cnt = 0;
+            usb_uart->st.tx_cnt = 0;
         }
     }
 
@@ -351,4 +379,9 @@ void usb_uart_get_state(UsbUartBridge* usb_uart, UsbUartState* st) {
     furi_assert(usb_uart);
     furi_assert(st);
     memcpy(st, &(usb_uart->st), sizeof(UsbUartState));
+}
+
+void usb_uart_reset_counters(UsbUartBridge* usb_uart) {
+    furi_assert(usb_uart);
+    osThreadFlagsSet(furi_thread_get_thread_id(usb_uart->thread), WorkerEvtCntReset);
 }

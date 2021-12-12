@@ -19,9 +19,9 @@ void gpio_scene_usb_uart_on_enter(void* context) {
     uint32_t prev_state = scene_manager_get_scene_state(app->scene_manager, GpioAppViewUsbUart);
     if(prev_state == 0) {
         scene_usb_uart = furi_alloc(sizeof(SceneUsbUartBridge));
-        scene_usb_uart->cfg.vcp_ch = 0; // TODO: settings load
-        scene_usb_uart->cfg.uart_ch = 0;
-        scene_usb_uart->cfg.flow_pins = 0;
+        scene_usb_uart->cfg.vcp_ch = 1; // TODO: settings load
+        scene_usb_uart->cfg.uart_ch = 1;
+        scene_usb_uart->cfg.flow_pins = 1;
         scene_usb_uart->cfg.baudrate_mode = 0;
         scene_usb_uart->cfg.baudrate = 0;
         app->usb_uart_bridge = usb_uart_enable(&scene_usb_uart->cfg);
@@ -38,9 +38,20 @@ void gpio_scene_usb_uart_on_enter(void* context) {
 bool gpio_scene_usb_uart_on_event(void* context, SceneManagerEvent event) {
     GpioApp* app = context;
     if(event.type == SceneManagerEventTypeCustom) {
-        scene_manager_set_scene_state(app->scene_manager, GpioAppViewUsbUart, 1);
-        scene_manager_next_scene(app->scene_manager, GpioAppViewUsbUartCfg);
-        return true;
+        if(event.event == GpioUsbUartEventConfig) {
+            scene_manager_set_scene_state(app->scene_manager, GpioAppViewUsbUart, 1);
+            scene_manager_next_scene(app->scene_manager, GpioAppViewUsbUartCfg);
+            return true;
+        } else if(event.event == GpioUsbUartEventEnOn) {
+            hal_gpio_write(&gpio_ext_pa7, 1);
+            return true;
+        } else if(event.event == GpioUsbUartEventEnOff) {
+            hal_gpio_write(&gpio_ext_pa7, 0);
+            return true;
+        } else if(event.event == GpioUsbUartEventCntReset) {
+            usb_uart_reset_counters(app->usb_uart_bridge);
+            return true;
+        }
     } else if(event.type == SceneManagerEventTypeTick) {
         uint32_t tx_cnt_last = scene_usb_uart->state.tx_cnt;
         uint32_t rx_cnt_last = scene_usb_uart->state.rx_cnt;

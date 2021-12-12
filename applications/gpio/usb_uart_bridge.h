@@ -27,3 +27,5 @@ void usb_uart_set_config(UsbUartBridge* usb_uart, UsbUartConfig* cfg);
 void usb_uart_get_config(UsbUartBridge* usb_uart, UsbUartConfig* cfg);
 
 void usb_uart_get_state(UsbUartBridge* usb_uart, UsbUartState* st);
+
+void usb_uart_reset_counters(UsbUartBridge* usb_uart);
