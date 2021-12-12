@@ -1,7 +1,6 @@
 #pragma once
 
 #include "gpio_app.h"
-#include "gpio_item.h"
 #include "scenes/gpio_scene.h"
 #include "gpio_custom_event.h"
 #include "usb_uart_bridge.h"
@@ -12,7 +11,6 @@
 #include <gui/modules/submenu.h>
 #include <notification/notification-messages.h>
 #include <gui/modules/variable-item-list.h>
-#include "views/gpio_test.h"
 #include "views/gpio_usb_uart.h"
 
 struct GpioApp {
@@ -22,14 +20,12 @@ struct GpioApp {
     SceneManager* scene_manager;
 
     VariableItemList* var_item_list;
-    GpioTest* gpio_test;
     GpioUsbUart* gpio_usb_uart;
     UsbUartBridge* usb_uart_bridge;
 };
 
 typedef enum {
     GpioAppViewVarItemList,
-    GpioAppViewGpioTest,
     GpioAppViewUsbUart,
     GpioAppViewUsbUartCfg,
 } GpioAppView;

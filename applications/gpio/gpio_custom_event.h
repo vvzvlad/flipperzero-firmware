@@ -1,10 +1,7 @@
 #pragma once
 
 typedef enum {
-    GpioStartEventOtgOff = 0,
-    GpioStartEventOtgOn,
-    GpioStartEventManualConrol,
-    GpioStartEventUsbUart,
+    GpioStartEventUsbUart = 0,
 
     GpioUsbUartEventConfig,
     GpioUsbUartEventEnOff,
