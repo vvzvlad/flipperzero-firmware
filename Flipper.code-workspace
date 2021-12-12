@@ -17,7 +17,11 @@
          "Makefile*": "makefile",
          "furi.h": "c",
          "freertos.h": "c",
-         "timers.h": "c"
-      }
+         "timers.h": "c",
+         "gpio_custom_event.h": "c",
+         "usb_uart_bridge.h": "c",
+         "variable-item-list.h": "c"
+      },
+      "cortex-debug.variableUseNaturalFormat": false
    }
 }
