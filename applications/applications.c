@@ -41,6 +41,7 @@ extern int32_t usb_mouse_app(void* p);
 extern int32_t usb_test_app(void* p);
 extern int32_t vibro_test_app(void* p);
 extern int32_t ble_keyboard_app(void* p);
+extern int32_t counter_app(void* p);
 
 // Plugins
 extern int32_t music_player_app(void* p);
@@ -153,6 +154,7 @@ const FlipperApplication FLIPPER_APPS[] = {
 #ifdef APP_BAD_USB
     {.app = bad_usb_app, .name = "Bad USB", .stack_size = 2048, .icon = &A_BadUsb_14},
 #endif
+    {.app = counter_app, .name = "Counter", .stack_size = 1024, .icon = &A_BadUsb_14},
 };
 
 const size_t FLIPPER_APPS_COUNT = sizeof(FLIPPER_APPS) / sizeof(FlipperApplication);
