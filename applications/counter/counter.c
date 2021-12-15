@@ -7,6 +7,11 @@ typedef struct {
     ViewPort* view_port;
 } CounterApp;
 
+void counter_draw_callback(Canvas* canvas, void* ctx) {
+    canvas_set_font(canvas, FontPrimary);
+    canvas_draw_str(canvas, 2, 10, "Counter application");
+}
+
 void counter_app_free(CounterApp* app) {
     gui_remove_view_port(app->gui, app->view_port);
     view_port_free(app->view_port);
@@ -19,6 +24,7 @@ CounterApp* counter_app_alloc() {
     app->view_port = view_port_alloc();
     app->gui = furi_record_open("gui");
     gui_add_view_port(app->gui, app->view_port, GuiLayerFullscreen);
+    view_port_draw_callback_set(app->view_port, counter_draw_callback, app);
     return app;
 }
 
