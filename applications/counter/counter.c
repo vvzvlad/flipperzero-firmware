@@ -7,6 +7,7 @@ typedef struct {
     ViewPort* view_port;
     osMessageQueueId_t event_queue;
     InputEvent event;
+    uint16_t counter;
 } CounterApp;
 
 void counter_input_callback(InputEvent* input_event, void* ctx) {
@@ -15,8 +16,18 @@ void counter_input_callback(InputEvent* input_event, void* ctx) {
 }
 
 void counter_draw_callback(Canvas* canvas, void* ctx) {
+    CounterApp* app = (CounterApp*)ctx;
     canvas_set_font(canvas, FontPrimary);
-    canvas_draw_str(canvas, 2, 10, "Counter application");
+    canvas_draw_str(canvas, 2, 10, "Counter");
+
+    char string[6];
+    sprintf(string, "%d", app->counter);
+
+    canvas_set_font(canvas, FontBigNumbers);
+    canvas_draw_str(canvas, 53, 38, string);
+
+    canvas_set_font(canvas, FontSecondary);
+    canvas_draw_str(canvas, 15, 60, "Long press back for exit");
 }
 
 void counter_app_free(CounterApp* app) {
@@ -43,9 +54,16 @@ int32_t counter_app(void* p) {
 
     while(1) {
         furi_check(osMessageQueueGet(app->event_queue, &app->event, NULL, osWaitForever) == osOK);
-        if(app->event.type == InputTypeShort && app->event.key == InputKeyBack) {
+        if(app->event.type == InputTypeLong && app->event.key == InputKeyBack) {
             break;
         }
+        if(app->event.type == InputTypeShort) {
+            app->counter++;
+        }
+        if(app->event.type == InputTypeLong && app->event.key == InputKeyOk) {
+            app->counter = 0;
+        }
+        view_port_update(app->view_port);
     }
 
     counter_app_free(app);
