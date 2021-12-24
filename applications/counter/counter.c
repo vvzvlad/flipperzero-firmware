@@ -6,6 +6,7 @@ typedef struct {
     Gui* gui;
     ViewPort* view_port;
     osMessageQueueId_t event_queue;
+    InputEvent event;
 } CounterApp;
 
 void counter_input_callback(InputEvent* input_event, void* ctx) {
@@ -41,10 +42,8 @@ int32_t counter_app(void* p) {
     CounterApp* app = counter_app_alloc();
 
     while(1) {
-        InputEvent input;
-        osStatus_t result = osMessageQueueGet(app->event_queue, &input, NULL, osWaitForever);
-        furi_check(result == osOK);
-        if(input.type == InputTypeShort && input.key == InputKeyBack) {
+        furi_check(osMessageQueueGet(app->event_queue, &app->event, NULL, osWaitForever) == osOK);
+        if(app->event.type == InputTypeShort && app->event.key == InputKeyBack) {
             break;
         }
     }
